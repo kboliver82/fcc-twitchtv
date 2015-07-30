@@ -2,15 +2,24 @@ var channels = [
   {name: 'FreeCodeCamp', alias: 'freecodecamp'}
 ];
 var twitchStreamsUrl = 'https://api.twitch.tv/kraken/streams/';
+var twitchChannelsUrl = 'https://api.twitch.tv/kraken/channels/';
 
 
-function updatePage(channel, channelInfo) {
+function updateChannelStatus(channel, channelInfo) {
     var testBox = $('#test');
     var isOnline = channelInfo.streams ? true : false;
-    var channelUrl = channelInfo._links.channel;
+    var channelUrl = 'https://twitch.tv/' + channel.alias;
   
     var link = $('<a>').attr('href', channelUrl).text(channel.name + ' is ' + (isOnline ? 'online' : 'offline'));
     testBox.append(link);
+}
+
+function updateChannelIcon(channel, channelInfo) {
+    var testBox = $('#test');
+    var channelLogo = channelInfo.logo;
+  
+    var image = $('<img>').attr('src', channelLogo).attr('style', 'height: 50px');
+    testBox.prepend(image);
 }
 
 function addChannel(channel) {
@@ -18,11 +27,19 @@ function addChannel(channel) {
     type: 'GET',
     url: twitchStreamsUrl + channel.alias,
     dataType: 'jsonp',
-    contentType: 'application/json',
-    success: function(data) {
-      console.log('data', data);
-      updatePage(channel, data);
-    }
+    contentType: 'application/json'
+  }).then(function(data) {
+    updateChannelStatus(channel, data);
+    
+    return $.ajax({
+      type: 'GET',
+      url: twitchChannelsUrl + channel.alias,
+      dataType: 'jsonp',
+      contentType: 'application/json'
+    });
+  }).then(function(data) {
+    console.log('data', data);
+    updateChannelIcon(channel, data);
   });
 }
 
@@ -33,5 +50,4 @@ $(document).ready(function() {
   });
 
 });
-
 
